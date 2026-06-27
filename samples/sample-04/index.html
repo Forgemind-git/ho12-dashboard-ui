@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>City Open Data Explorer</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #e8f4f8;
+      --surface: #ffffff;
+      --border: #c8dde8;
+      --accent: #0369a1;
+      --accent2: #0ea5e9;
+      --accent3: #f97316;
+      --text: #0c1a26;
+      --muted: #4d7a96;
+      --card-radius: 12px;
+      --shadow: 0 2px 14px rgba(3,105,161,0.10);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 26px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 12px;
+      padding: 18px 24px;
+    }
+    header h1 { font-size: 1.4rem; font-weight: 800; }
+    .meta { font-size: 0.78rem; opacity: 0.8; margin-top: 4px; }
+    .city-badge {
+      background: rgba(255,255,255,0.18);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 20px 22px;
+      box-shadow: var(--shadow);
+    }
+    .card-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 8px; }
+    .card-value { font-size: 1.9rem; font-weight: 800; color: var(--text); line-height: 1; }
+    .card-icon { font-size: 1.4rem; margin-bottom: 6px; }
+    .card-sub { font-size: 0.78rem; color: var(--accent2); margin-top: 6px; font-weight: 500; }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 16px;
+    }
+    .chart-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+    .chart-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 14px; color: var(--text); }
+    canvas { max-height: 300px; }
+    .legend-list { list-style: none; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .legend-list li { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--muted); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    @media (max-width: 680px) {
+      .layout { grid-template-columns: 1fr; }
+      .cards { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🏙️ City Open Data Explorer</h1>
+    <div class="meta">Last updated: <span id="lastUpdated"></span></div>
+  </div>
+  <div class="city-badge">Demo City · June 2026</div>
+</header>
+
+<div class="cards">
+  <div class="card">
+    <div class="card-icon">📋</div>
+    <div class="card-label">Total Incidents This Month</div>
+    <div class="card-value" id="totalIncidents">—</div>
+    <div class="card-sub" id="incidentSub"></div>
+  </div>
+  <div class="card">
+    <div class="card-icon">🔖</div>
+    <div class="card-label">Most Common Type</div>
+    <div class="card-value" id="topType" style="font-size:1.1rem;margin-top:6px;">—</div>
+    <div class="card-sub" id="topTypeCount"></div>
+  </div>
+  <div class="card">
+    <div class="card-icon">⏱️</div>
+    <div class="card-label">Avg Response Time</div>
+    <div class="card-value" id="avgResponse">—</div>
+    <div class="card-sub">minutes per incident</div>
+  </div>
+  <div class="card">
+    <div class="card-icon">🔴</div>
+    <div class="card-label">Open vs Resolved</div>
+    <div class="card-value" id="openCount">—</div>
+    <div class="card-sub" id="resolvedSub"></div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="chart-section">
+    <div class="chart-title">Incidents by Category</div>
+    <canvas id="donutChart"></canvas>
+    <ul class="legend-list" id="legendList"></ul>
+  </div>
+  <div class="chart-section">
+    <div class="chart-title">Daily Incident Count — This Month</div>
+    <canvas id="lineChart"></canvas>
+  </div>
+</div>
+
+<script>
+// SWAP THIS: replace with your real API call or data source
+// Expected shape: array of { date: "YYYY-MM-DD", type: string, response_time_min: number, resolved: boolean }
+const INCIDENT_DATA = [
+  { date: "2026-06-01", type: "Road Damage",      response_time_min: 42, resolved: true  },
+  { date: "2026-06-01", type: "Noise Complaint",  response_time_min: 18, resolved: true  },
+  { date: "2026-06-02", type: "Illegal Parking",  response_time_min: 25, resolved: true  },
+  { date: "2026-06-02", type: "Road Damage",      response_time_min: 55, resolved: false },
+  { date: "2026-06-03", type: "Graffiti",         response_time_min: 88, resolved: true  },
+  { date: "2026-06-03", type: "Noise Complaint",  response_time_min: 12, resolved: true  },
+  { date: "2026-06-04", type: "Water Leak",       response_time_min: 31, resolved: true  },
+  { date: "2026-06-04", type: "Illegal Parking",  response_time_min: 20, resolved: true  },
+  { date: "2026-06-05", type: "Road Damage",      response_time_min: 60, resolved: false },
+  { date: "2026-06-05", type: "Graffiti",         response_time_min: 72, resolved: false },
+  { date: "2026-06-06", type: "Noise Complaint",  response_time_min: 15, resolved: true  },
+  { date: "2026-06-06", type: "Water Leak",       response_time_min: 28, resolved: true  },
+  { date: "2026-06-07", type: "Illegal Parking",  response_time_min: 22, resolved: true  },
+  { date: "2026-06-08", type: "Road Damage",      response_time_min: 48, resolved: true  },
+  { date: "2026-06-08", type: "Noise Complaint",  response_time_min: 11, resolved: true  },
+  { date: "2026-06-09", type: "Graffiti",         response_time_min: 95, resolved: false },
+  { date: "2026-06-09", type: "Water Leak",       response_time_min: 35, resolved: true  },
+  { date: "2026-06-10", type: "Illegal Parking",  response_time_min: 19, resolved: true  },
+  { date: "2026-06-11", type: "Road Damage",      response_time_min: 53, resolved: true  },
+  { date: "2026-06-12", type: "Noise Complaint",  response_time_min: 14, resolved: true  },
+  { date: "2026-06-13", type: "Graffiti",         response_time_min: 81, resolved: false },
+  { date: "2026-06-14", type: "Water Leak",       response_time_min: 29, resolved: true  },
+  { date: "2026-06-15", type: "Road Damage",      response_time_min: 44, resolved: false },
+  { date: "2026-06-16", type: "Illegal Parking",  response_time_min: 23, resolved: true  },
+  { date: "2026-06-17", type: "Noise Complaint",  response_time_min: 17, resolved: true  },
+  { date: "2026-06-18", type: "Graffiti",         response_time_min: 78, resolved: true  },
+  { date: "2026-06-19", type: "Road Damage",      response_time_min: 61, resolved: false },
+  { date: "2026-06-20", type: "Water Leak",       response_time_min: 33, resolved: true  },
+  { date: "2026-06-21", type: "Noise Complaint",  response_time_min: 13, resolved: true  },
+  { date: "2026-06-22", type: "Illegal Parking",  response_time_min: 21, resolved: true  },
+  { date: "2026-06-23", type: "Graffiti",         response_time_min: 84, resolved: false },
+  { date: "2026-06-24", type: "Road Damage",      response_time_min: 50, resolved: true  },
+  { date: "2026-06-25", type: "Water Leak",       response_time_min: 27, resolved: true  },
+  { date: "2026-06-26", type: "Noise Complaint",  response_time_min: 16, resolved: true  }
+];
+
+const PALETTE = ['#0369a1','#0ea5e9','#f97316','#22c55e','#a855f7','#ef4444'];
+
+function render() {
+  document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+
+  const thisMonth = new Date().toISOString().slice(0, 7);
+  const monthData = INCIDENT_DATA.filter(d => d.date.startsWith(thisMonth));
+
+  document.getElementById('totalIncidents').textContent = monthData.length;
+  document.getElementById('incidentSub').textContent = INCIDENT_DATA.length + ' total in dataset';
+
+  // Most common type
+  const typeCounts = {};
+  monthData.forEach(d => { typeCounts[d.type] = (typeCounts[d.type] || 0) + 1; });
+  const topType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0];
+  document.getElementById('topType').textContent = topType ? topType[0] : '—';
+  document.getElementById('topTypeCount').textContent = topType ? topType[1] + ' occurrences' : '';
+
+  const avgResp = (monthData.reduce((s, d) => s + d.response_time_min, 0) / (monthData.length || 1)).toFixed(1);
+  document.getElementById('avgResponse').textContent = avgResp;
+
+  const openCount = monthData.filter(d => !d.resolved).length;
+  document.getElementById('openCount').textContent = openCount;
+  document.getElementById('resolvedSub').textContent = (monthData.length - openCount) + ' resolved';
+
+  // Donut chart by type
+  const allTypes = [...new Set(INCIDENT_DATA.map(d => d.type))];
+  const typeCountsAll = {};
+  allTypes.forEach(t => { typeCountsAll[t] = INCIDENT_DATA.filter(d => d.type === t).length; });
+
+  new Chart(document.getElementById('donutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: allTypes,
+      datasets: [{
+        data: allTypes.map(t => typeCountsAll[t]),
+        backgroundColor: PALETTE.slice(0, allTypes.length),
+        borderWidth: 2,
+        borderColor: '#fff',
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      cutout: '62%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: '#0c1a26', padding: 10 }
+      }
+    }
+  });
+
+  // Build custom legend
+  const ul = document.getElementById('legendList');
+  allTypes.forEach((t, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="legend-dot" style="background:${PALETTE[i]}"></span>${t} <strong style="margin-left:auto;color:#0c1a26">${typeCountsAll[t]}</strong>`;
+    ul.appendChild(li);
+  });
+
+  // Daily line chart
+  const days = [...new Set(monthData.map(d => d.date))].sort();
+  const dailyCounts = days.map(day => monthData.filter(d => d.date === day).length);
+  new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+      labels: days.map(d => d.slice(5).replace('-', '/')),
+      datasets: [{
+        label: 'Incidents',
+        data: dailyCounts,
+        borderColor: '#0369a1',
+        backgroundColor: 'rgba(3,105,161,0.12)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+        pointHoverRadius: 7
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: '#0c1a26' }
+      },
+      scales: {
+        x: { ticks: { color: '#4d7a96', maxTicksLimit: 10 }, grid: { color: '#d8eaf3' } },
+        y: { ticks: { color: '#4d7a96', stepSize: 1 }, grid: { color: '#d8eaf3' }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+render();
+</script>
+</body>
+</html>

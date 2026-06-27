@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team KPI Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f0f4f8;
+      --surface: #ffffff;
+      --border: #dde3ec;
+      --accent: #2563eb;
+      --accent2: #10b981;
+      --danger: #ef4444;
+      --text: #1e2130;
+      --muted: #64748b;
+      --card-radius: 14px;
+      --shadow: 0 2px 16px rgba(37,99,235,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 28px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+    }
+    header h1 { font-size: 1.55rem; font-weight: 800; color: var(--text); }
+    header h1 span { color: var(--accent); }
+    .meta { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+    .badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.72rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 22px 24px;
+      box-shadow: var(--shadow);
+    }
+    .card-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
+    .card-value { font-size: 2.1rem; font-weight: 800; color: var(--text); line-height: 1; }
+    .card-icon { font-size: 1.5rem; margin-bottom: 8px; }
+    .card-sub { font-size: 0.78rem; color: var(--accent2); margin-top: 6px; }
+    .card-sub.warn { color: var(--danger); }
+    .chart-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 26px;
+      box-shadow: var(--shadow);
+    }
+    .chart-title { font-size: 1rem; font-weight: 700; margin-bottom: 18px; }
+    canvas { max-height: 300px; }
+    @media (max-width: 600px) {
+      body { padding: 16px; }
+      .cards { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>👥 Team <span>KPI</span> Dashboard</h1>
+    <div class="meta">Last updated: <span id="lastUpdated"></span></div>
+  </div>
+  <span class="badge">Live</span>
+</header>
+
+<div class="cards">
+  <div class="card">
+    <div class="card-icon">✅</div>
+    <div class="card-label">Tickets Closed This Week</div>
+    <div class="card-value" id="closedThisWeek">—</div>
+    <div class="card-sub" id="closedDelta"></div>
+  </div>
+  <div class="card">
+    <div class="card-icon">⏱️</div>
+    <div class="card-label">Avg Resolution Time</div>
+    <div class="card-value" id="avgResolution">—</div>
+    <div class="card-sub">hours per ticket</div>
+  </div>
+  <div class="card">
+    <div class="card-icon">⭐</div>
+    <div class="card-label">Customer Satisfaction</div>
+    <div class="card-value" id="csatScore">—</div>
+    <div class="card-sub">out of 5.0</div>
+  </div>
+  <div class="card">
+    <div class="card-icon">🚨</div>
+    <div class="card-label">Open Escalations</div>
+    <div class="card-value" id="escalations">—</div>
+    <div class="card-sub warn" id="escalationNote"></div>
+  </div>
+</div>
+
+<div class="chart-section">
+  <div class="chart-title">Weekly Ticket Volume — Last 8 Weeks</div>
+  <canvas id="kpiChart"></canvas>
+</div>
+
+<script>
+// SWAP THIS: replace with your real API call or data source
+// Expected shape: array of { week: "YYYY-Www", closed: number, opened: number, csat: number, resolution_hours: number, escalations: number }
+const TEAM_KPI_DATA = [
+  { week: "2026-W19", closed: 42, opened: 51, csat: 4.1, resolution_hours: 6.2, escalations: 2 },
+  { week: "2026-W20", closed: 55, opened: 48, csat: 4.3, resolution_hours: 5.8, escalations: 1 },
+  { week: "2026-W21", closed: 38, opened: 44, csat: 3.9, resolution_hours: 7.4, escalations: 4 },
+  { week: "2026-W22", closed: 61, opened: 57, csat: 4.5, resolution_hours: 4.9, escalations: 0 },
+  { week: "2026-W23", closed: 49, opened: 52, csat: 4.2, resolution_hours: 5.5, escalations: 3 },
+  { week: "2026-W24", closed: 67, opened: 60, csat: 4.6, resolution_hours: 4.3, escalations: 1 },
+  { week: "2026-W25", closed: 58, opened: 55, csat: 4.4, resolution_hours: 5.1, escalations: 2 },
+  { week: "2026-W26", closed: 71, opened: 64, csat: 4.7, resolution_hours: 3.9, escalations: 0 }
+];
+
+function render() {
+  document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+
+  const latest = TEAM_KPI_DATA[TEAM_KPI_DATA.length - 1];
+  const prev   = TEAM_KPI_DATA[TEAM_KPI_DATA.length - 2];
+
+  // Cards
+  document.getElementById('closedThisWeek').textContent = latest.closed;
+  const delta = latest.closed - prev.closed;
+  const deltaEl = document.getElementById('closedDelta');
+  deltaEl.textContent = (delta >= 0 ? '▲ +' : '▼ ') + delta + ' vs last week';
+  deltaEl.classList.toggle('warn', delta < 0);
+
+  const avgRes = (TEAM_KPI_DATA.reduce((s, d) => s + d.resolution_hours, 0) / TEAM_KPI_DATA.length).toFixed(1);
+  document.getElementById('avgResolution').textContent = avgRes;
+
+  const avgCsat = (TEAM_KPI_DATA.reduce((s, d) => s + d.csat, 0) / TEAM_KPI_DATA.length).toFixed(2);
+  document.getElementById('csatScore').textContent = avgCsat;
+
+  document.getElementById('escalations').textContent = latest.escalations;
+  const esNote = document.getElementById('escalationNote');
+  esNote.textContent = latest.escalations === 0 ? 'All clear ✓' : 'Needs attention';
+  esNote.classList.toggle('warn', latest.escalations > 0);
+
+  // Chart
+  const labels = TEAM_KPI_DATA.map(d => d.week.replace('2026-', ''));
+  new Chart(document.getElementById('kpiChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Closed',
+          data: TEAM_KPI_DATA.map(d => d.closed),
+          backgroundColor: 'rgba(37,99,235,0.75)',
+          borderRadius: 6,
+        },
+        {
+          label: 'Opened',
+          data: TEAM_KPI_DATA.map(d => d.opened),
+          backgroundColor: 'rgba(16,185,129,0.5)',
+          borderRadius: 6,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#1e2130', font: { size: 12 } } },
+        tooltip: { backgroundColor: '#fff', titleColor: '#1e2130', bodyColor: '#64748b', borderColor: '#dde3ec', borderWidth: 1 }
+      },
+      scales: {
+        x: { ticks: { color: '#64748b' }, grid: { color: '#eef2f7' } },
+        y: { ticks: { color: '#64748b' }, grid: { color: '#eef2f7' }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+render();
+</script>
+</body>
+</html>
