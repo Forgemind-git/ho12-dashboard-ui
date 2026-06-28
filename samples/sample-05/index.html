@@ -1,4 +1,3 @@
-<!-- TODO: Replace mockData with real values, update KPI text content, and customise the chart -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,8 +23,9 @@
     .chart-box h2 { font-size:14px; font-weight:700; color:#374151; margin-bottom:16px; }
     canvas { max-height:260px; }
     .deadline-list { list-style:none; }
-    .deadline-list li { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #F3F4F6; font-size:13px; color:#4B5563; }
+    .deadline-list li { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid #F3F4F6; font-size:13px; color:#4B5563; }
     .deadline-list li:last-child { border-bottom:none; }
+    .deadline-list li span:first-child { flex:1; }
     .deadline-date { font-size:11px; color:#9CA3AF; }
     .status-pill { font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; }
     .on-track { background:#D1FAE5; color:#065F46; }
@@ -38,7 +38,7 @@
 
 <header>
   <h1>Project Status Dashboard</h1>
-  <p>HO12 Sample 5 — Starter skeleton</p>
+  <p>HO12 Sample 5 — example dashboard with mock data</p>
 </header>
 
 <div class="problem">
@@ -50,22 +50,22 @@
 <div class="kpi-grid">
   <div class="kpi">
     <div class="kpi-label">On Track</div>
-    <div class="kpi-value" id="kpi-1">—</div><!-- TODO: count of on-track projects -->
+    <div class="kpi-value" id="kpi-1">—</div>
     <div class="kpi-sub">projects</div>
   </div>
   <div class="kpi">
     <div class="kpi-label">At Risk</div>
-    <div class="kpi-value" id="kpi-2">—</div><!-- TODO: count of at-risk projects -->
+    <div class="kpi-value" id="kpi-2">—</div>
     <div class="kpi-sub">projects</div>
   </div>
   <div class="kpi">
     <div class="kpi-label">Blocked</div>
-    <div class="kpi-value" id="kpi-3">—</div><!-- TODO: count of blocked projects -->
+    <div class="kpi-value" id="kpi-3">—</div>
     <div class="kpi-sub">projects</div>
   </div>
   <div class="kpi">
     <div class="kpi-label">Tasks Completed</div>
-    <div class="kpi-value" id="kpi-4">—</div><!-- TODO: tasks completed this week -->
+    <div class="kpi-value" id="kpi-4">—</div>
     <div class="kpi-sub">this week</div>
   </div>
 </div>
@@ -79,40 +79,39 @@
   <div class="chart-box">
     <h2>Upcoming Deadlines</h2>
     <ul class="deadline-list" id="deadline-list">
-      <!-- TODO: Populate from mockData below -->
-      <li>
-        <span>TODO: Project name</span>
-        <span class="deadline-date">TODO: date</span>
-        <span class="status-pill on-track">On Track</span>
-      </li>
-      <li>
-        <span>TODO: Project name</span>
-        <span class="deadline-date">TODO: date</span>
-        <span class="status-pill at-risk">At Risk</span>
-      </li>
-      <li>
-        <span>TODO: Project name</span>
-        <span class="deadline-date">TODO: date</span>
-        <span class="status-pill blocked">Blocked</span>
-      </li>
+      <!-- rows are filled in by the script below -->
     </ul>
   </div>
 </div>
 
 <script>
-// TODO: Replace this mock data with your real data or API call
+// Mock data — swap this for your own (or a fetch() to your task tool's API)
 const mockData = {
   statusLabels: ['On Track', 'At Risk', 'Blocked'],
-  statusValues: [0, 0, 0], // TODO: fill with real counts
+  statusValues: [7, 3, 2],   // project counts per status
+  deadlines: [
+    { name: 'Website redesign',     date: 'Jul 3',  status: 'on-track', label: 'On Track' },
+    { name: 'Mobile app launch',    date: 'Jul 9',  status: 'at-risk',  label: 'At Risk' },
+    { name: 'Data migration',       date: 'Jul 12', status: 'blocked',  label: 'Blocked' },
+    { name: 'Q3 marketing campaign', date: 'Jul 18', status: 'on-track', label: 'On Track' },
+  ],
 };
 
-// TODO: Update these KPI values with real numbers
-document.getElementById('kpi-1').textContent = '—'; // TODO: on track count
-document.getElementById('kpi-2').textContent = '—'; // TODO: at risk count
-document.getElementById('kpi-3').textContent = '—'; // TODO: blocked count
-document.getElementById('kpi-4').textContent = '—'; // TODO: tasks completed this week
+// KPI values
+document.getElementById('kpi-1').textContent = mockData.statusValues[0]; // on track
+document.getElementById('kpi-2').textContent = mockData.statusValues[1]; // at risk
+document.getElementById('kpi-3').textContent = mockData.statusValues[2]; // blocked
+document.getElementById('kpi-4').textContent = '34';                     // tasks completed this week
 
-// Donut chart (status split). TODO: change type to 'bar', 'line' etc if needed
+// Build the deadline list from the data
+const list = document.getElementById('deadline-list');
+mockData.deadlines.forEach(d => {
+  const li = document.createElement('li');
+  li.innerHTML = `<span>${d.name}</span><span class="deadline-date">${d.date}</span><span class="status-pill ${d.status}">${d.label}</span>`;
+  list.appendChild(li);
+});
+
+// Donut chart (status split). Change type to 'bar', 'line' etc if you prefer
 new Chart(document.getElementById('main-chart'), {
   type: 'doughnut',
   data: {
