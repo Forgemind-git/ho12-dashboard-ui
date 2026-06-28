@@ -1,305 +1,131 @@
+<!-- TODO: Replace mockData with real values, update KPI text content, and customise the chart -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Project Status Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root {
-      --bg: #f8fafb;
-      --surface: #ffffff;
-      --border: #e2e8f0;
-      --done: #22c55e;
-      --inprog: #3b82f6;
-      --blocked: #ef4444;
-      --notstarted: #94a3b8;
-      --text: #111827;
-      --muted: #6b7280;
-      --card-radius: 13px;
-      --shadow: 0 2px 12px rgba(0,0,0,0.07);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      padding: 26px;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 28px;
-    }
-    .header-left h1 { font-size: 1.55rem; font-weight: 800; }
-    .header-left h1 span { color: var(--inprog); }
-    .meta { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
-    .legend {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); }
-    .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 14px;
-      margin-bottom: 24px;
-    }
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--card-radius);
-      padding: 18px 20px;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .card-top { display: flex; justify-content: space-between; align-items: center; }
-    .card-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); }
-    .card-value { font-size: 2.2rem; font-weight: 900; line-height: 1; }
-    .card-pct { font-size: 0.8rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
-    .done-val { color: var(--done); }
-    .inprog-val { color: var(--inprog); }
-    .blocked-val { color: var(--blocked); }
-    .total-val { color: var(--text); }
-    .done-pct   { background: #dcfce7; color: var(--done); }
-    .inprog-pct { background: #dbeafe; color: var(--inprog); }
-    .blocked-pct { background: #fee2e2; color: var(--blocked); }
-    .chart-section {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--card-radius);
-      padding: 24px;
-      box-shadow: var(--shadow);
-      margin-bottom: 24px;
-    }
-    .chart-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 16px; }
-    canvas { max-height: 340px; }
-    .project-table { width: 100%; border-collapse: collapse; margin-top: 0; }
-    .project-table th {
-      text-align: left;
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--muted);
-      padding: 10px 12px;
-      border-bottom: 2px solid var(--border);
-    }
-    .project-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
-    .project-table tr:last-child td { border-bottom: none; }
-    .pill { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-    .health-good { background: #dcfce7; color: #15803d; }
-    .health-warn { background: #fef9c3; color: #a16207; }
-    .health-bad  { background: #fee2e2; color: #b91c1c; }
-    @media (max-width: 600px) {
-      body { padding: 14px; }
-      .cards { grid-template-columns: 1fr 1fr; }
-      .legend { display: none; }
-    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#F8F9FA; color:#1a1a2e; padding:24px; }
+    header { margin-bottom:24px; padding-bottom:16px; border-bottom:3px solid #9333EA; }
+    header h1 { font-size:22px; font-weight:800; color:#9333EA; }
+    header p { font-size:13px; color:#6B7280; margin-top:4px; }
+    .problem { background:#F3E8FF; border-left:4px solid #9333EA; padding:12px 16px; border-radius:4px; margin-bottom:24px; font-size:13px; color:#4B5563; line-height:1.6; }
+    .problem strong { color:#9333EA; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:24px; }
+    .kpi { background:#fff; border-radius:10px; padding:18px; box-shadow:0 1px 6px rgba(0,0,0,.08); border-top:3px solid #9333EA; }
+    .kpi-label { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#9CA3AF; margin-bottom:6px; }
+    .kpi-value { font-size:28px; font-weight:800; color:#9333EA; line-height:1; }
+    .kpi-sub { font-size:11px; color:#9CA3AF; margin-top:4px; }
+    .main-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .chart-box { background:#fff; border-radius:10px; padding:20px; box-shadow:0 1px 6px rgba(0,0,0,.08); }
+    .chart-box h2 { font-size:14px; font-weight:700; color:#374151; margin-bottom:16px; }
+    canvas { max-height:260px; }
+    .deadline-list { list-style:none; }
+    .deadline-list li { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #F3F4F6; font-size:13px; color:#4B5563; }
+    .deadline-list li:last-child { border-bottom:none; }
+    .deadline-date { font-size:11px; color:#9CA3AF; }
+    .status-pill { font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; }
+    .on-track { background:#D1FAE5; color:#065F46; }
+    .at-risk { background:#FEF3C7; color:#92400E; }
+    .blocked { background:#FEE2E2; color:#991B1B; }
+    @media(max-width:600px){ .main-row{ grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
 
 <header>
-  <div class="header-left">
-    <h1>🗂️ Project <span>Status</span> Dashboard</h1>
-    <div class="meta">Last updated: <span id="lastUpdated"></span></div>
-  </div>
-  <div class="legend">
-    <div class="legend-item"><span class="legend-dot" style="background:var(--done)"></span> Done</div>
-    <div class="legend-item"><span class="legend-dot" style="background:var(--inprog)"></span> In Progress</div>
-    <div class="legend-item"><span class="legend-dot" style="background:var(--blocked)"></span> Blocked</div>
-    <div class="legend-item"><span class="legend-dot" style="background:var(--notstarted)"></span> Not Started</div>
-  </div>
+  <h1>Project Status Dashboard</h1>
+  <p>HO12 Sample 5 — Starter skeleton</p>
 </header>
 
-<div class="cards">
-  <div class="card">
-    <div class="card-top">
-      <div class="card-label">Total Tasks</div>
-      <span style="font-size:1.3rem">📦</span>
-    </div>
-    <div class="card-value total-val" id="totalTasks">—</div>
-    <div style="font-size:0.78rem;color:var(--muted)" id="projectCount"></div>
+<div class="problem">
+  <strong>Problem:</strong> Your projects' status is buried in a task tool and stakeholders keep asking where things stand.
+  Build a hosted status dashboard.
+</div>
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="kpi-label">On Track</div>
+    <div class="kpi-value" id="kpi-1">—</div><!-- TODO: count of on-track projects -->
+    <div class="kpi-sub">projects</div>
   </div>
-  <div class="card">
-    <div class="card-top">
-      <div class="card-label">Done</div>
-      <span class="card-pct done-pct" id="donePct"></span>
-    </div>
-    <div class="card-value done-val" id="doneCount">—</div>
-    <div style="font-size:0.78rem;color:var(--muted)">tasks completed</div>
+  <div class="kpi">
+    <div class="kpi-label">At Risk</div>
+    <div class="kpi-value" id="kpi-2">—</div><!-- TODO: count of at-risk projects -->
+    <div class="kpi-sub">projects</div>
   </div>
-  <div class="card">
-    <div class="card-top">
-      <div class="card-label">In Progress</div>
-      <span class="card-pct inprog-pct" id="inprogPct"></span>
-    </div>
-    <div class="card-value inprog-val" id="inprogCount">—</div>
-    <div style="font-size:0.78rem;color:var(--muted)">currently active</div>
+  <div class="kpi">
+    <div class="kpi-label">Blocked</div>
+    <div class="kpi-value" id="kpi-3">—</div><!-- TODO: count of blocked projects -->
+    <div class="kpi-sub">projects</div>
   </div>
-  <div class="card">
-    <div class="card-top">
-      <div class="card-label">Blocked</div>
-      <span class="card-pct blocked-pct" id="blockedPct"></span>
-    </div>
-    <div class="card-value blocked-val" id="blockedCount">—</div>
-    <div style="font-size:0.78rem;color:var(--muted)">need attention</div>
+  <div class="kpi">
+    <div class="kpi-label">Tasks Completed</div>
+    <div class="kpi-value" id="kpi-4">—</div><!-- TODO: tasks completed this week -->
+    <div class="kpi-sub">this week</div>
   </div>
 </div>
 
-<div class="chart-section">
-  <div class="chart-title">Tasks by Status per Project</div>
-  <canvas id="statusChart"></canvas>
-</div>
-
-<div class="chart-section">
-  <div class="chart-title">Project Summary Table</div>
-  <table class="project-table">
-    <thead>
-      <tr>
-        <th>Project</th>
-        <th>Total</th>
-        <th>Done</th>
-        <th>In Progress</th>
-        <th>Blocked</th>
-        <th>Not Started</th>
-        <th>Health</th>
-      </tr>
-    </thead>
-    <tbody id="projectTableBody"></tbody>
-  </table>
+<!-- Donut chart + deadline list -->
+<div class="main-row">
+  <div class="chart-box">
+    <h2>Status Split</h2>
+    <canvas id="main-chart"></canvas>
+  </div>
+  <div class="chart-box">
+    <h2>Upcoming Deadlines</h2>
+    <ul class="deadline-list" id="deadline-list">
+      <!-- TODO: Populate from mockData below -->
+      <li>
+        <span>TODO: Project name</span>
+        <span class="deadline-date">TODO: date</span>
+        <span class="status-pill on-track">On Track</span>
+      </li>
+      <li>
+        <span>TODO: Project name</span>
+        <span class="deadline-date">TODO: date</span>
+        <span class="status-pill at-risk">At Risk</span>
+      </li>
+      <li>
+        <span>TODO: Project name</span>
+        <span class="deadline-date">TODO: date</span>
+        <span class="status-pill blocked">Blocked</span>
+      </li>
+    </ul>
+  </div>
 </div>
 
 <script>
-// SWAP THIS: replace with your real API call or data source
-// Expected shape: array of { project: string, done: number, in_progress: number, blocked: number, not_started: number }
-const PROJECT_DATA = [
-  { project: "Mobile App v3",      done: 24, in_progress: 8,  blocked: 2, not_started: 6  },
-  { project: "API Gateway Rewrite",done: 15, in_progress: 12, blocked: 5, not_started: 3  },
-  { project: "Data Pipeline",      done: 30, in_progress: 4,  blocked: 0, not_started: 1  },
-  { project: "Auth Service",       done: 8,  in_progress: 5,  blocked: 7, not_started: 10 },
-  { project: "Admin Dashboard",    done: 19, in_progress: 6,  blocked: 1, not_started: 4  },
-  { project: "Notification Engine",done: 11, in_progress: 9,  blocked: 3, not_started: 7  }
-];
+// TODO: Replace this mock data with your real data or API call
+const mockData = {
+  statusLabels: ['On Track', 'At Risk', 'Blocked'],
+  statusValues: [0, 0, 0], // TODO: fill with real counts
+};
 
-function health(d) {
-  const total = d.done + d.in_progress + d.blocked + d.not_started;
-  const doneRate = d.done / total;
-  const blockRate = d.blocked / total;
-  if (blockRate > 0.2) return ['Bad', 'health-bad'];
-  if (doneRate > 0.6 && blockRate === 0) return ['Good', 'health-good'];
-  return ['Warn', 'health-warn'];
-}
+// TODO: Update these KPI values with real numbers
+document.getElementById('kpi-1').textContent = '—'; // TODO: on track count
+document.getElementById('kpi-2').textContent = '—'; // TODO: at risk count
+document.getElementById('kpi-3').textContent = '—'; // TODO: blocked count
+document.getElementById('kpi-4').textContent = '—'; // TODO: tasks completed this week
 
-function render() {
-  document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
-
-  const totals = PROJECT_DATA.reduce((acc, d) => ({
-    done:        acc.done        + d.done,
-    in_progress: acc.in_progress + d.in_progress,
-    blocked:     acc.blocked     + d.blocked,
-    not_started: acc.not_started + d.not_started,
-  }), { done: 0, in_progress: 0, blocked: 0, not_started: 0 });
-
-  const grand = totals.done + totals.in_progress + totals.blocked + totals.not_started;
-  document.getElementById('totalTasks').textContent = grand;
-  document.getElementById('projectCount').textContent = PROJECT_DATA.length + ' projects';
-  document.getElementById('doneCount').textContent = totals.done;
-  document.getElementById('donePct').textContent = Math.round(totals.done / grand * 100) + '%';
-  document.getElementById('inprogCount').textContent = totals.in_progress;
-  document.getElementById('inprogPct').textContent = Math.round(totals.in_progress / grand * 100) + '%';
-  document.getElementById('blockedCount').textContent = totals.blocked;
-  document.getElementById('blockedPct').textContent = Math.round(totals.blocked / grand * 100) + '%';
-
-  // Horizontal stacked bar chart
-  new Chart(document.getElementById('statusChart'), {
-    type: 'bar',
-    data: {
-      labels: PROJECT_DATA.map(d => d.project),
-      datasets: [
-        {
-          label: 'Done',
-          data: PROJECT_DATA.map(d => d.done),
-          backgroundColor: '#22c55e',
-          borderRadius: { topLeft: 4, bottomLeft: 4 },
-          borderSkipped: false,
-        },
-        {
-          label: 'In Progress',
-          data: PROJECT_DATA.map(d => d.in_progress),
-          backgroundColor: '#3b82f6',
-        },
-        {
-          label: 'Blocked',
-          data: PROJECT_DATA.map(d => d.blocked),
-          backgroundColor: '#ef4444',
-        },
-        {
-          label: 'Not Started',
-          data: PROJECT_DATA.map(d => d.not_started),
-          backgroundColor: '#cbd5e1',
-          borderRadius: { topRight: 4, bottomRight: 4 },
-          borderSkipped: false,
-        }
-      ]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { color: '#6b7280', font: { size: 12 }, boxWidth: 12, padding: 16 }
-        },
-        tooltip: {
-          backgroundColor: '#fff',
-          titleColor: '#111827',
-          bodyColor: '#6b7280',
-          borderColor: '#e2e8f0',
-          borderWidth: 1
-        }
-      },
-      scales: {
-        x: {
-          stacked: true,
-          ticks: { color: '#6b7280' },
-          grid: { color: '#f1f5f9' }
-        },
-        y: {
-          stacked: true,
-          ticks: { color: '#374151', font: { size: 12 } },
-          grid: { display: false }
-        }
-      }
-    }
-  });
-
-  // Summary table
-  const tbody = document.getElementById('projectTableBody');
-  PROJECT_DATA.forEach(d => {
-    const total = d.done + d.in_progress + d.blocked + d.not_started;
-    const [hLabel, hClass] = health(d);
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${d.project}</strong></td>
-      <td>${total}</td>
-      <td style="color:var(--done);font-weight:700">${d.done}</td>
-      <td style="color:var(--inprog);font-weight:700">${d.in_progress}</td>
-      <td style="color:var(--blocked);font-weight:700">${d.blocked}</td>
-      <td style="color:var(--notstarted)">${d.not_started}</td>
-      <td><span class="pill ${hClass}">${hLabel}</span></td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-render();
+// Donut chart (status split). TODO: change type to 'bar', 'line' etc if needed
+new Chart(document.getElementById('main-chart'), {
+  type: 'doughnut',
+  data: {
+    labels: mockData.statusLabels,
+    datasets: [{
+      label: 'Projects by status',
+      data: mockData.statusValues,
+      backgroundColor: ['#9333EA', '#F59E0B', '#EF4444'],
+    }]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+});
 </script>
+
 </body>
 </html>

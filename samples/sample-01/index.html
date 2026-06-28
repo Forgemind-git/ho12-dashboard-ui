@@ -1,261 +1,104 @@
+<!-- TODO: Replace mockData with real values, update KPI text content, and customise the chart -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Personal Habit Tracker Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Habit Tracker Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --border: #2a2d3e;
-      --accent: #6c63ff;
-      --accent2: #38d9a9;
-      --text: #e8e8f0;
-      --muted: #8888aa;
-      --card-radius: 12px;
-      --shadow: 0 4px 24px rgba(0,0,0,0.4);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      padding: 24px;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 32px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--border);
-    }
-    header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; }
-    header h1 span { color: var(--accent); }
-    .timestamp { font-size: 0.8rem; color: var(--muted); }
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 28px;
-    }
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--card-radius);
-      padding: 20px 24px;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .card-icon { font-size: 1.6rem; }
-    .card-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
-    .card-value { font-size: 2rem; font-weight: 700; color: var(--text); line-height: 1; }
-    .card-sub { font-size: 0.78rem; color: var(--accent2); }
-    .chart-section {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--card-radius);
-      padding: 24px;
-      box-shadow: var(--shadow);
-    }
-    .chart-title {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 16px;
-      color: var(--text);
-    }
-    canvas { max-height: 320px; }
-    @media (max-width: 600px) {
-      body { padding: 16px; }
-      .cards { grid-template-columns: 1fr 1fr; }
-    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#F8F9FA; color:#1a1a2e; padding:24px; }
+    header { margin-bottom:24px; padding-bottom:16px; border-bottom:3px solid #9333EA; }
+    header h1 { font-size:22px; font-weight:800; color:#9333EA; }
+    header p { font-size:13px; color:#6B7280; margin-top:4px; }
+    .problem { background:#F3E8FF; border-left:4px solid #9333EA; padding:12px 16px; border-radius:4px; margin-bottom:24px; font-size:13px; color:#4B5563; line-height:1.6; }
+    .problem strong { color:#9333EA; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:24px; }
+    .kpi { background:#fff; border-radius:10px; padding:18px; box-shadow:0 1px 6px rgba(0,0,0,.08); border-top:3px solid #9333EA; }
+    .kpi-label { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#9CA3AF; margin-bottom:6px; }
+    .kpi-value { font-size:28px; font-weight:800; color:#9333EA; line-height:1; }
+    .kpi-sub { font-size:11px; color:#9CA3AF; margin-top:4px; }
+    .chart-box { background:#fff; border-radius:10px; padding:20px; box-shadow:0 1px 6px rgba(0,0,0,.08); }
+    .chart-box h2 { font-size:14px; font-weight:700; color:#374151; margin-bottom:16px; }
+    canvas { max-height:300px; }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>🎯 Habit <span>Tracker</span> Dashboard</h1>
-  <div class="timestamp">Last updated: <span id="lastUpdated"></span></div>
+  <h1>Habit Tracker Dashboard</h1>
+  <p>HO12 Sample 1 — Starter skeleton</p>
 </header>
 
-<div class="cards">
-  <div class="card">
-    <div class="card-icon">🔥</div>
-    <div class="card-label">Current Streak</div>
-    <div class="card-value" id="currentStreak">—</div>
-    <div class="card-sub">consecutive days</div>
+<div class="problem">
+  <strong>Problem:</strong> You track habits, workouts and spending in scattered notes.
+  Build a hosted dashboard that shows your weekly progress across 3–5 metrics on one page.
+</div>
+
+<!-- KPI Cards — one per metric -->
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="kpi-label">Habit Streak</div>
+    <div class="kpi-value" id="kpi-1">—</div><!-- TODO: metric 1 -->
+    <div class="kpi-sub">days</div>
   </div>
-  <div class="card">
-    <div class="card-icon">📅</div>
-    <div class="card-label">Days Completed This Month</div>
-    <div class="card-value" id="daysCompleted">—</div>
-    <div class="card-sub">fully completed days</div>
+  <div class="kpi">
+    <div class="kpi-label">Workouts This Week</div>
+    <div class="kpi-value" id="kpi-2">—</div><!-- TODO: metric 2 -->
+    <div class="kpi-sub">sessions</div>
   </div>
-  <div class="card">
-    <div class="card-icon">📊</div>
-    <div class="card-label">Completion Rate</div>
-    <div class="card-value" id="completionRate">—</div>
-    <div class="card-sub">of all habits, last 30 days</div>
+  <div class="kpi">
+    <div class="kpi-label">Steps Average</div>
+    <div class="kpi-value" id="kpi-3">—</div><!-- TODO: metric 3 -->
+    <div class="kpi-sub">per day</div>
   </div>
-  <div class="card">
-    <div class="card-icon">🏆</div>
-    <div class="card-label">Best Streak</div>
-    <div class="card-value" id="bestStreak">—</div>
-    <div class="card-sub">days in a row</div>
+  <div class="kpi">
+    <div class="kpi-label">Sleep Average</div>
+    <div class="kpi-value" id="kpi-4">—</div><!-- TODO: metric 4 -->
+    <div class="kpi-sub">hours</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Spending vs Budget</div>
+    <div class="kpi-value" id="kpi-5">—</div><!-- TODO: metric 5 -->
+    <div class="kpi-sub">% of budget used</div>
   </div>
 </div>
 
-<div class="chart-section">
-  <div class="chart-title">Daily Habit Completions — Last 30 Days</div>
-  <canvas id="habitChart"></canvas>
+<!-- Chart -->
+<div class="chart-box">
+  <h2>Weekly Progress</h2>
+  <canvas id="main-chart"></canvas>
 </div>
 
 <script>
-// SWAP THIS: replace with your real API call or data source
-// Expected shape: array of { date: "YYYY-MM-DD", completed_habits: number, total_habits: number }
-const HABIT_DATA = [
-  { date: "2026-05-28", completed_habits: 3, total_habits: 5 },
-  { date: "2026-05-29", completed_habits: 5, total_habits: 5 },
-  { date: "2026-05-30", completed_habits: 4, total_habits: 5 },
-  { date: "2026-05-31", completed_habits: 2, total_habits: 5 },
-  { date: "2026-06-01", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-02", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-03", completed_habits: 4, total_habits: 5 },
-  { date: "2026-06-04", completed_habits: 3, total_habits: 5 },
-  { date: "2026-06-05", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-06", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-07", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-08", completed_habits: 4, total_habits: 5 },
-  { date: "2026-06-09", completed_habits: 2, total_habits: 5 },
-  { date: "2026-06-10", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-11", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-12", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-13", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-14", completed_habits: 4, total_habits: 5 },
-  { date: "2026-06-15", completed_habits: 3, total_habits: 5 },
-  { date: "2026-06-16", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-17", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-18", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-19", completed_habits: 4, total_habits: 5 },
-  { date: "2026-06-20", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-21", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-22", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-23", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-24", completed_habits: 5, total_habits: 5 },
-  { date: "2026-06-25", completed_habits: 4, total_habits: 5 },
-  { date: "2026-06-26", completed_habits: 5, total_habits: 5 }
-];
+// TODO: Replace this mock data with your real data or API call
+const mockData = {
+  labels: ['TODO: Week 1', 'TODO: Week 2', 'TODO: Week 3', 'TODO: Week 4'],
+  values: [0, 0, 0, 0],
+};
 
-// ── Derived stats ──────────────────────────────────────────────────────────────
-function calcStats(data) {
-  const today = new Date().toISOString().split('T')[0];
-  const thisMonth = today.slice(0, 7);
+// TODO: Update these KPI values with real numbers
+document.getElementById('kpi-1').textContent = '—'; // TODO: habit streak
+document.getElementById('kpi-2').textContent = '—'; // TODO: workouts this week
+document.getElementById('kpi-3').textContent = '—'; // TODO: steps average
+document.getElementById('kpi-4').textContent = '—'; // TODO: sleep average
+document.getElementById('kpi-5').textContent = '—'; // TODO: spending vs budget
 
-  // Current streak: walk backwards from the last entry
-  let streak = 0;
-  for (let i = data.length - 1; i >= 0; i--) {
-    if (data[i].completed_habits === data[i].total_habits) {
-      streak++;
-    } else {
-      break;
-    }
-  }
-
-  // Best streak
-  let best = 0, run = 0;
-  for (const d of data) {
-    if (d.completed_habits === d.total_habits) {
-      run++;
-      if (run > best) best = run;
-    } else {
-      run = 0;
-    }
-  }
-
-  // Days completed this month (all habits done)
-  const daysCompleted = data.filter(d =>
-    d.date.startsWith(thisMonth) && d.completed_habits === d.total_habits
-  ).length;
-
-  // Completion rate across all 30 days
-  const totalPossible = data.reduce((s, d) => s + d.total_habits, 0);
-  const totalDone = data.reduce((s, d) => s + d.completed_habits, 0);
-  const rate = totalPossible > 0 ? Math.round((totalDone / totalPossible) * 100) : 0;
-
-  return { streak, best, daysCompleted, rate };
-}
-
-function render() {
-  document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
-
-  const { streak, best, daysCompleted, rate } = calcStats(HABIT_DATA);
-  document.getElementById('currentStreak').textContent = streak;
-  document.getElementById('bestStreak').textContent = best;
-  document.getElementById('daysCompleted').textContent = daysCompleted;
-  document.getElementById('completionRate').textContent = rate + '%';
-
-  // Chart
-  const labels = HABIT_DATA.map(d => {
-    const [, m, day] = d.date.split('-');
-    return `${m}/${day}`;
-  });
-  const completed = HABIT_DATA.map(d => d.completed_habits);
-  const total = HABIT_DATA.map(d => d.total_habits);
-
-  new Chart(document.getElementById('habitChart'), {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Completed Habits',
-          data: completed,
-          borderColor: '#6c63ff',
-          backgroundColor: 'rgba(108,99,255,0.12)',
-          fill: true,
-          tension: 0.4,
-          pointRadius: 3,
-          pointHoverRadius: 6,
-        },
-        {
-          label: 'Total Habits',
-          data: total,
-          borderColor: '#38d9a9',
-          borderDash: [6, 3],
-          backgroundColor: 'transparent',
-          tension: 0,
-          pointRadius: 0,
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { labels: { color: '#e8e8f0', font: { size: 12 } } },
-        tooltip: { backgroundColor: '#1a1d27', borderColor: '#2a2d3e', borderWidth: 1 }
-      },
-      scales: {
-        x: {
-          ticks: { color: '#8888aa', maxTicksLimit: 10 },
-          grid: { color: '#2a2d3e' }
-        },
-        y: {
-          min: 0,
-          ticks: { color: '#8888aa', stepSize: 1 },
-          grid: { color: '#2a2d3e' }
-        }
-      }
-    }
-  });
-}
-
-render();
+// Chart — bar (weekly). TODO: change type to 'line', 'doughnut' etc if needed
+new Chart(document.getElementById('main-chart'), {
+  type: 'bar',
+  data: {
+    labels: mockData.labels,
+    datasets: [{
+      label: 'TODO: label your dataset',
+      data: mockData.values,
+      backgroundColor: '#9333EA',
+    }]
+  },
+  options: { responsive: true }
+});
 </script>
+
 </body>
 </html>

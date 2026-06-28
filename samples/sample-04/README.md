@@ -1,41 +1,17 @@
-# Sample 04 — City Open Data Explorer
+# HO12 Sample 4 — Open Data Explorer Dashboard
 
-A self-contained HTML dashboard that turns city incident or public-service data into clear visual summaries. Built to show how open civic datasets — 311 calls, permit applications, road closures — can be displayed without a backend.
+## Your task
+You are curious about a public dataset but the raw data is unreadable. Build a hosted dashboard that makes it visual.
 
-## What the dashboard shows
+## Metrics to show
+- Choose 4–6 columns from your dataset to display
 
-| Card | Description |
-|------|-------------|
-| Total Incidents This Month | Count of all records in the current calendar month |
-| Most Common Type | The incident category that appears most frequently |
-| Avg Response Time | Mean response time in minutes across all records |
-| Open vs Resolved | Count of unresolved incidents vs. total |
+## Chart type
+Bar + line charts + data table
 
-The doughnut chart breaks incidents down **by category** so patterns are immediately visible.
-
-## How to use
-
-1. Open `index.html` in any modern browser — no build step, no server needed.
-2. Replace the `INCIDENT_DATA` const at the top of the script block with your own data or API.
-3. Host on GitHub Pages by enabling Pages in your repo Settings.
-
-## How to swap mock data for real data
-
-```js
-// SWAP THIS: replace with your real API call or data source
-const INCIDENT_DATA = [ ... ];
-```
-
-Replace with a fetch:
-
-```js
-const res = await fetch('https://data.cityofexample.gov/resource/incidents.json?$limit=500');
-const INCIDENT_DATA = await res.json();
-// Expected shape: array of { date: "YYYY-MM-DD", type: string, response_time_min: number, resolved: boolean }
-```
-
-Many city open-data portals use Socrata, which returns JSON at URLs like the one above.
-
-## Deploy to GitHub Pages
-
-Push this folder to a repo and enable Pages in Settings → Pages → Branch: main / Folder: /samples/sample-04
+## How to build it
+1. Open index.html in your browser
+2. Replace the mock data arrays with your real data (or API call)
+3. Update the KPI card values
+4. Customise the chart labels and colours
+5. Push to GitHub Pages for a live link
