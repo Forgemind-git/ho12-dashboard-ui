@@ -13,6 +13,37 @@ A self-contained HTML dashboard that visualises daily habit completion data. Dis
 
 The line chart plots **daily completed habits** against **total habits** over the last 30 days.
 
+## Use it with your Claude.ai subscription
+No API key needed. Just your normal Claude.ai login.
+
+1. Open **Claude.ai** (your subscription) in your browser.
+2. Paste the **example prompt** below into the chat.
+3. Claude replies with a complete `index.html`. Click **Copy**.
+4. Open a plain text editor (Notepad on Windows, TextEdit on Mac), paste it in, and save
+   the file as `index.html`.
+5. **Double-click the file** — it opens in your browser and the dashboard appears.
+6. To put it online for free, push the file to a GitHub repo and turn on
+   **Settings → Pages**. You'll get a public link to share.
+
+## The example prompt
+Copy this exactly into Claude.ai:
+
+```
+Build me a single-file HTML dashboard (one index.html, no build tools) that visualises my daily habit tracking. Load Chart.js from a CDN.
+
+Data: an array of 30 days, each item { date: "YYYY-MM-DD", completed_habits: number, total_habits: number }. Put this array in a clearly-commented const near the top of the script so I can swap it for my own data. Make up realistic example data where I usually complete 4–5 of 5 habits.
+
+Show four KPI stat cards calculated from the data:
+- Current Streak — consecutive days (up to the latest) with at least one habit completed.
+- Days Completed This Month — days this calendar month where all habits were completed.
+- Completion Rate % — total completed ÷ total possible over the 30 days.
+- Best Streak — longest run of fully-completed days.
+
+Below the cards, show a line chart titled "Daily Habits — Last 30 Days" plotting completed_habits vs total_habits per day.
+
+Use a clean modern look with a purple accent (#9333EA), white cards with soft shadows, and a light background. Make it mobile-friendly.
+```
+
 ## How to use
 
 1. Open `index.html` directly in any modern browser — no build step, no server needed.
